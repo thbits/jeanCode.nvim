@@ -15,7 +15,11 @@ function M.setup()
 
   vim.api.nvim_create_user_command("JeanCodeLayout", function()
     require("jeancode").toggle_layout()
-  end, { desc = "Toggle Claude Code between vertical and horizontal layout" })
+  end, { desc = "Cycle Claude Code layout: right → bottom → left → float" })
+
+  vim.api.nvim_create_user_command("JeanCodeFloat", function()
+    require("jeancode").toggle_float()
+  end, { desc = "Toggle Claude Code as floating window" })
 
   vim.api.nvim_create_user_command("JeanCodeContext", function()
     require("jeancode.terminal").write_buffers_file()

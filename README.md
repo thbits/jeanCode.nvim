@@ -27,7 +27,7 @@ A Neovim plugin that integrates [Claude Code](https://docs.anthropic.com/en/docs
 ```lua
 {
   "thbits/jeanCode.nvim",
-  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend", "JeanCodeLayout" },
+  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend", "JeanCodeLayout", "JeanCodeFloat" },
   keys = {
     { "<leader>cc", "<cmd>JeanCode<cr>", desc = "Toggle Claude Code" },
     { "<leader>cs", "<cmd>JeanCodeSend<cr>", mode = "v", desc = "Send to Claude" },
@@ -46,7 +46,7 @@ A Neovim plugin that integrates [Claude Code](https://docs.anthropic.com/en/docs
 {
   "thbits/jeanCode.nvim",
   dir = "~/path/to/jeanCode.nvim",
-  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend", "JeanCodeLayout" },
+  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend", "JeanCodeLayout", "JeanCodeFloat" },
   keys = {
     { "<leader>cc", "<cmd>JeanCode<cr>", desc = "Toggle Claude Code" },
     { "<leader>cs", "<cmd>JeanCodeSend<cr>", mode = "v", desc = "Send to Claude" },
@@ -211,7 +211,8 @@ vim.keymap.set("v", "<leader>cs", "<Plug>(jeancode-send)")
 | `:JeanCode` | Toggle the Claude Code panel |
 | `:JeanCodeNew` | Start a fresh Claude session |
 | `:JeanCodeSend` | Send visual selection to Claude (use in visual mode) |
-| `:JeanCodeLayout` | Cycle panel position: right → bottom → left → right |
+| `:JeanCodeLayout` | Cycle panel position: right → bottom → left → float → right |
+| `:JeanCodeFloat` | Toggle Claude Code as a floating window |
 | `:JeanCodeContext` | Force update the `.jeancode_buffers` file |
 
 ## How It Works

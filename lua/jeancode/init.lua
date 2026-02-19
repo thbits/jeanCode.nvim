@@ -50,93 +50,15 @@ function M.new_session()
 end
 
 function M.toggle_layout()
-  local config = require("jeancode.config")
-  local terminal = require("jeancode.terminal")
-  local window = require("jeancode.window")
-  local state = terminal.get_state()
+  require("jeancode.layout").toggle()
+end
 
-  -- Only works when the window is visible
-  if not window.is_visible(state.win_id) then
-    vim.notify("jeancode: panel is not open", vim.log.levels.WARN)
-    return
-  end
-
-  -- Cycle position: right -> bottom -> left -> right
-  local cycle = { right = "bottom", bottom = "left", left = "right" }
-  local cur = config.options.window.position
-  local next_pos = cycle[cur] or "right"
-  config.options.window.position = next_pos
-
-  -- Close current window and reopen with new position
-  window.close(state.win_id)
-  state.win_id = window.open(state.bufnr, config.options.window)
-  if config.options.window.enter_insert then
-    vim.cmd("startinsert")
-  end
-  vim.notify("jeancode: layout → " .. next_pos, vim.log.levels.INFO)
+function M.toggle_float()
+  require("jeancode.layout").float()
 end
 
 function M.send_selection()
-  local terminal = require("jeancode.terminal")
-  local config = require("jeancode.config")
-
-  -- Capture file context BEFORE any window changes
-  local file = vim.api.nvim_buf_get_name(0)
-  local ft = vim.bo.filetype
-
-  -- Get visual selection using getregion (requires Neovim 0.10+)
-  local mode = vim.fn.visualmode()
-  local start_pos = vim.fn.getpos("'<")
-  local end_pos = vim.fn.getpos("'>")
-  local start_line = start_pos[2]
-  local start_col = start_pos[3]
-  local end_line = end_pos[2]
-  local end_col = end_pos[3]
-  local lines = vim.fn.getregion(start_pos, end_pos, { type = mode })
-
-  if not lines or #lines == 0 then
-    vim.notify("jeancode: no selection", vim.log.levels.WARN)
-    return
-  end
-
-  -- Ensure panel is visible
-  terminal.ensure_visible()
-  local watcher = require("jeancode.watcher")
-  watcher.start()
-
-  local relative = file ~= "" and vim.fn.fnamemodify(file, ":~:.") or "unknown"
-  local ft_info = ft ~= "" and (" (" .. ft .. ")") or ""
-  local send_mode = config.options.send_mode
-
-  local text
-  if send_mode == "reference" then
-    -- Send just file path + line/col range (saves tokens, Claude reads the file)
-    local range
-    if mode == "V" or (start_line == end_line and start_col == 1 and end_col >= #lines[#lines]) then
-      -- Full line selection
-      if start_line == end_line then
-        range = "line " .. start_line
-      else
-        range = "lines " .. start_line .. "-" .. end_line
-      end
-    else
-      -- Character-level selection
-      if start_line == end_line then
-        range = "line " .. start_line .. ", columns " .. start_col .. "-" .. end_col
-      else
-        range = "line " .. start_line .. " col " .. start_col .. " to line " .. end_line .. " col " .. end_col
-      end
-    end
-    text = "See " .. relative .. ", " .. range .. ft_info
-      .. ". Read the file at those positions and work with that code.\n"
-  else
-    -- Send full content (original behavior)
-    local header = "From " .. relative .. ":" .. start_line .. "-" .. end_line .. ft_info .. ":\n"
-    local code = table.concat(lines, "\n")
-    text = header .. "```" .. ft .. "\n" .. code .. "\n```\n"
-  end
-
-  terminal.send(text)
+  require("jeancode.sender").send_selection()
 end
 
 return M
