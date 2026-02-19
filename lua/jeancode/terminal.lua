@@ -11,7 +11,6 @@ local state = {
   session_id = nil, -- Claude session UUID, persists across respawns
   source_bufnr = nil, -- last non-terminal buffer the user was in
   buffers_file = nil, -- path to .jeancode_buffers file
-  user_closed = false, -- true when user explicitly toggled off (don't auto-reopen)
 }
 
 local function is_buf_valid()
@@ -37,6 +36,30 @@ local function generate_uuid()
     local v = (c == "x") and math.random(0, 15) or math.random(8, 11)
     return string.format("%x", v)
   end))
+end
+
+--- Clean up stale buffers files from dead Neovim instances.
+local function cleanup_stale_buffers_files()
+  local handle = vim.uv.fs_scandir("/tmp")
+  if not handle then return end
+  local my_pid = vim.fn.getpid()
+  while true do
+    local name, typ = vim.uv.fs_scandir_next(handle)
+    if not name then break end
+    if typ == "file" then
+      local pid = name:match("^%.jeancode_buffers_(%d+)$")
+      if pid then
+        pid = tonumber(pid)
+        if pid ~= my_pid then
+          -- Check if PID is still alive (signal 0 = just check, don't kill)
+          local alive = vim.uv.kill(pid, 0) == 0
+          if not alive then
+            os.remove("/tmp/" .. name)
+          end
+        end
+      end
+    end
+  end
 end
 
 --- Write the current list of open buffers to .jeancode_buffers file.
@@ -96,21 +119,21 @@ function M.spawn(source_bufnr, opts)
     cwd = source_file ~= "" and vim.fn.fnamemodify(source_file, ":h") or vim.fn.getcwd()
   end
 
-  -- Write buffers file and build command
-  state.buffers_file = cwd .. "/.jeancode_buffers"
-  M.write_buffers_file()
-
+  -- Session tracking: generate ID first (needed for buffers filename)
   local spawn_cmd = cmd
   if cfg.cli.args and #cfg.cli.args > 0 then
     spawn_cmd = spawn_cmd .. " " .. table.concat(cfg.cli.args, " ")
   end
-  -- Session tracking: resume existing or start new with known ID
   if opts.resume and state.session_id then
     spawn_cmd = spawn_cmd .. " --resume " .. state.session_id
   else
     state.session_id = generate_uuid()
     spawn_cmd = spawn_cmd .. " --session-id " .. state.session_id
   end
+
+  -- Write buffers file to /tmp (unique per Neovim instance, outside project dir)
+  state.buffers_file = "/tmp/.jeancode_buffers_" .. vim.fn.getpid()
+  M.write_buffers_file()
   -- Tell Claude to read .jeancode_buffers for live context
   local prompt = "The file " .. state.buffers_file
     .. " contains the list of currently open files in Neovim. "
@@ -208,31 +231,13 @@ function M._setup_context_watcher(bufnr)
     end,
   })
 
-  -- Reopen the Claude window if something else closes it (e.g., file explorer sidebar)
-  vim.api.nvim_create_autocmd("WinClosed", {
-    group = context_watcher_group,
-    callback = function(ev)
-      local closed_win = tonumber(ev.match)
-      if closed_win == state.win_id and is_buf_valid() then
-        state.win_id = nil
-        -- Only reopen if the user didn't explicitly close it via toggle
-        if not state.user_closed then
-          vim.schedule(function()
-            if is_buf_valid() and not window.is_visible(state.win_id) then
-              local cfg = config.options
-              state.win_id = window.open(state.bufnr, cfg.window)
-            end
-          end)
-        end
-      end
-    end,
-  })
 end
 
 function M.toggle(source_bufnr)
+  cleanup_stale_buffers_files()
+
   -- Window is visible -> close it (keep buffer alive)
   if window.is_visible(state.win_id) then
-    state.user_closed = true
     window.close(state.win_id)
     state.win_id = nil
     return
@@ -240,8 +245,6 @@ function M.toggle(source_bufnr)
 
   source_bufnr = source_bufnr or vim.api.nvim_get_current_buf()
   state.source_bufnr = source_bufnr
-  state.user_closed = false
-
   -- Buffer exists but window is hidden -> reopen the window
   if is_buf_valid() then
     local cfg = config.options
@@ -276,6 +279,7 @@ function M.destroy()
 end
 
 function M.new_session()
+  cleanup_stale_buffers_files()
   M.destroy()
   state.session_id = nil -- clear so spawn generates a fresh session
   M.spawn()

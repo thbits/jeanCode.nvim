@@ -12,6 +12,14 @@ function M.setup(opts)
 
   local keymaps = require("jeancode.keymaps")
   keymaps.setup()
+
+  -- Clean up buffers file when Neovim exits
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    callback = function()
+      local terminal = require("jeancode.terminal")
+      terminal.destroy()
+    end,
+  })
 end
 
 function M.toggle()
