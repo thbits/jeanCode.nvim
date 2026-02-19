@@ -13,6 +13,10 @@ function M.setup()
     require("jeancode").send_selection()
   end, { range = true, desc = "Send visual selection to Claude Code" })
 
+  vim.api.nvim_create_user_command("JeanCodeLayout", function()
+    require("jeancode").toggle_layout()
+  end, { desc = "Toggle Claude Code between vertical and horizontal layout" })
+
   vim.api.nvim_create_user_command("JeanCodeContext", function()
     require("jeancode.terminal").write_buffers_file()
     vim.notify("jeancode: buffers file updated", vim.log.levels.INFO)

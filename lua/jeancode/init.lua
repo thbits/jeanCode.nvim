@@ -49,6 +49,33 @@ function M.new_session()
   watcher.start()
 end
 
+function M.toggle_layout()
+  local config = require("jeancode.config")
+  local terminal = require("jeancode.terminal")
+  local window = require("jeancode.window")
+  local state = terminal.get_state()
+
+  -- Only works when the window is visible
+  if not window.is_visible(state.win_id) then
+    vim.notify("jeancode: panel is not open", vim.log.levels.WARN)
+    return
+  end
+
+  -- Cycle position: right -> bottom -> left -> right
+  local cycle = { right = "bottom", bottom = "left", left = "right" }
+  local cur = config.options.window.position
+  local next_pos = cycle[cur] or "right"
+  config.options.window.position = next_pos
+
+  -- Close current window and reopen with new position
+  window.close(state.win_id)
+  state.win_id = window.open(state.bufnr, config.options.window)
+  if config.options.window.enter_insert then
+    vim.cmd("startinsert")
+  end
+  vim.notify("jeancode: layout → " .. next_pos, vim.log.levels.INFO)
+end
+
 function M.send_selection()
   local terminal = require("jeancode.terminal")
 

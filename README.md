@@ -27,10 +27,11 @@ A Neovim plugin that integrates [Claude Code](https://docs.anthropic.com/en/docs
 ```lua
 {
   "thbits/jeanCode.nvim",
-  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend" },
+  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend", "JeanCodeLayout" },
   keys = {
     { "<leader>cc", "<cmd>JeanCode<cr>", desc = "Toggle Claude Code" },
     { "<leader>cs", "<cmd>JeanCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+    { "<leader>cl", "<cmd>JeanCodeLayout<cr>", desc = "Toggle Claude layout" },
   },
   opts = {},
   config = function(_, opts)
@@ -45,10 +46,11 @@ A Neovim plugin that integrates [Claude Code](https://docs.anthropic.com/en/docs
 {
   "thbits/jeanCode.nvim",
   dir = "~/path/to/jeanCode.nvim",
-  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend" },
+  cmd = { "JeanCode", "JeanCodeNew", "JeanCodeSend", "JeanCodeLayout" },
   keys = {
     { "<leader>cc", "<cmd>JeanCode<cr>", desc = "Toggle Claude Code" },
     { "<leader>cs", "<cmd>JeanCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+    { "<leader>cl", "<cmd>JeanCodeLayout<cr>", desc = "Toggle Claude layout" },
   },
   opts = {},
   config = function(_, opts)
@@ -196,6 +198,7 @@ vim.keymap.set("v", "<leader>cs", "<Plug>(jeancode-send)")
 | `:JeanCode` | Toggle the Claude Code panel |
 | `:JeanCodeNew` | Start a fresh Claude session |
 | `:JeanCodeSend` | Send visual selection to Claude (use in visual mode) |
+| `:JeanCodeLayout` | Cycle panel position: right → bottom → left → right |
 | `:JeanCodeContext` | Force update the `.jeancode_buffers` file |
 
 ## How It Works
@@ -206,14 +209,7 @@ The plugin uses `vim.fn.termopen()` to run Claude Code in a Neovim terminal buff
 
 ### Context Awareness
 
-When Claude starts, the plugin tells it (via `--append-system-prompt`) to read a `.jeancode_buffers` file in your project root. This file is automatically updated whenever you open or close buffers in Neovim. Claude reads it before each response to know what files you're working on.
-
-Add `.jeancode_buffers` to your global gitignore:
-
-```sh
-echo ".jeancode_buffers" >> ~/.gitignore_global
-git config --global core.excludesfile ~/.gitignore_global
-```
+When Claude starts, the plugin tells it (via `--append-system-prompt`) to read a `.jeancode_buffers_<pid>` file in `/tmp`. This file is automatically updated whenever you open or close buffers in Neovim. Claude reads it before each response to know what files you're working on. Each Neovim instance gets its own file (keyed by PID), so multiple instances don't conflict. Stale files from dead Neovim instances are cleaned up automatically.
 
 ### Session Persistence
 
@@ -222,10 +218,6 @@ Each session gets a UUID. Toggling the panel off/on preserves the conversation. 
 ### File Watching
 
 When Claude edits files on disk, the plugin detects changes and auto-reloads affected buffers. This uses a combination of `checktime` polling and `FileChangedShellPost` autocmds.
-
-### Window Resilience
-
-If something closes the Claude window externally (e.g., a file explorer sidebar), the plugin automatically reopens it. Explicitly toggling off with your keymap keeps it closed.
 
 ## Navigation
 
