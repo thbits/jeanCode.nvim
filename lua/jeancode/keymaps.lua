@@ -9,9 +9,7 @@ function M.setup()
     require("jeancode").toggle()
   end, { desc = "Toggle Claude Code panel" })
 
-  vim.keymap.set("v", "<Plug>(jeancode-send)", function()
-    require("jeancode").send_selection()
-  end, { desc = "Send selection to Claude Code" })
+  vim.keymap.set("v", "<Plug>(jeancode-send)", ":<C-u>JeanCodeSend<CR>", { desc = "Send selection to Claude Code" })
 
   vim.keymap.set("t", "<Plug>(jeancode-toggle)", function()
     require("jeancode").toggle()

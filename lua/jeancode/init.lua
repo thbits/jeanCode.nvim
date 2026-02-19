@@ -84,9 +84,9 @@ function M.send_selection()
   local ft = vim.bo.filetype
 
   -- Get visual selection using getregion (requires Neovim 0.10+)
-  local mode = vim.fn.mode()
-  local start_pos = vim.fn.getpos("v")
-  local end_pos = vim.fn.getpos(".")
+  local mode = vim.fn.visualmode()
+  local start_pos = vim.fn.getpos("'<")
+  local end_pos = vim.fn.getpos("'>")
   local start_line = start_pos[2]
   local end_line = end_pos[2]
   local lines = vim.fn.getregion(start_pos, end_pos, { type = mode })
@@ -115,9 +115,6 @@ function M.send_selection()
   local code = table.concat(lines, "\n")
   local text = header .. "```" .. ft .. "\n" .. code .. "\n```\n"
   terminal.send(text)
-
-  -- Exit visual mode
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 end
 
 return M
