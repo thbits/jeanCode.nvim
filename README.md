@@ -83,6 +83,9 @@ require("jeancode").setup({
     hide_signcolumn = true,  -- Hide the sign column in the Claude panel
   },
 
+  -- How :JeanCodeSend sends selections
+  send_mode = "reference", -- "reference" (file + line/col range, saves tokens) or "content" (full code block)
+
   -- Extra CLI arguments passed to the claude command
   cli = {
     args = {},  -- e.g. {"--dangerously-skip-permissions", "--verbose"}
@@ -159,6 +162,16 @@ opts = {
 ```lua
 opts = {
   cli = { args = { "--dangerously-skip-permissions", "--verbose" } },
+}
+```
+
+### Send full code content instead of references
+
+By default, `:JeanCodeSend` sends only the file path and line/column range (Claude reads the file itself). To send the full code block instead:
+
+```lua
+opts = {
+  send_mode = "content",
 }
 ```
 

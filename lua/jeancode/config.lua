@@ -11,6 +11,7 @@ M.defaults = {
     hide_numbers = true,
     hide_signcolumn = true,
   },
+  send_mode = "reference", -- "reference" (file path + line/col range) or "content" (full code block)
   cli = {
     args = {},  -- Extra CLI arguments, e.g. {"--dangerously-skip-permissions", "--verbose"}
   },
