@@ -32,6 +32,7 @@ A Neovim plugin that integrates [Claude Code](https://docs.anthropic.com/en/docs
     { "<leader>cc", "<cmd>JeanCode<cr>", desc = "Toggle Claude Code" },
     { "<leader>cs", "<cmd>JeanCodeSend<cr>", mode = "v", desc = "Send to Claude" },
     { "<leader>cl", "<cmd>JeanCodeLayout<cr>", desc = "Toggle Claude layout" },
+    { "<leader>cf", "<cmd>JeanCodeFloat<cr>", desc = "Toggle Claude float" },
   },
   opts = {},
   config = function(_, opts)
@@ -51,6 +52,7 @@ A Neovim plugin that integrates [Claude Code](https://docs.anthropic.com/en/docs
     { "<leader>cc", "<cmd>JeanCode<cr>", desc = "Toggle Claude Code" },
     { "<leader>cs", "<cmd>JeanCodeSend<cr>", mode = "v", desc = "Send to Claude" },
     { "<leader>cl", "<cmd>JeanCodeLayout<cr>", desc = "Toggle Claude layout" },
+    { "<leader>cf", "<cmd>JeanCodeFloat<cr>", desc = "Toggle Claude float" },
   },
   opts = {},
   config = function(_, opts)
