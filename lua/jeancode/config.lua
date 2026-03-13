@@ -18,8 +18,8 @@ M.defaults = {
   git = { auto_detect_root = true },
   refresh = {
     enable = true,
-    updatetime = 100,
-    timer_interval = 1000,
+    updatetime = 1000,
+    timer_interval = 5000,
     show_notifications = true,
   },
   keymaps = {
